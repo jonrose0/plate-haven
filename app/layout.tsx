@@ -4,11 +4,24 @@ import "./globals.css";
 import Link from "next/link";
 import {
   NavigationMenu,
+  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
+  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { DropdownMenuContent } from "@radix-ui/react-dropdown-menu";
+import Image from "next/image";
+import Cart from "@/components/Cart";
+import Providers from "@/lib/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,33 +40,101 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  categories,
 }: Readonly<{
   children: React.ReactNode;
+  categories: React.ReactNode;
 }>) {
+  console.log(categories);
   return (
-    <html lang="en">
+    <html lang="en" className="scroll-smooth">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased dark bg-background min-h-screen`}
       >
-        <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <Link href="/" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  Home
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/menu" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  Menu
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
-        <main>{children}</main>
+        <Providers>
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <Link href="/" legacyBehavior passHref>
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Home
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/menu" legacyBehavior passHref>
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Menu
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <Cart />
+
+                {/* <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant={"ghost"}>Cart</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align={"end"}
+                  className="bg-amber-900 rounded"
+                >
+                  <DropdownMenuItem className="flex-col">
+                    <div className="flex gap-4 mb-4">
+                      <Image
+                        src="https://www.themealdb.com/images/media/meals/tvvxpv1511191952.jpg"
+                        alt="cart"
+                        width={75}
+                        height={75}
+                        className="rounded-md"
+                      />
+
+                      <h3>Broccoli & Stilton soup</h3>
+                      <p>9.99$</p>
+                    </div>
+                    <div className="flex justify-between w-full">
+                      <div>
+                        <Button>-</Button>
+                        <span className="mx-4">1</span>
+                        <Button>+</Button>
+                      </div>
+                      <Button>Remove</Button>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="flex-col">
+                    <div className="flex gap-4 mb-4">
+                      <Image
+                        src="https://www.themealdb.com/images/media/meals/tvvxpv1511191952.jpg"
+                        alt="cart"
+                        width={75}
+                        height={75}
+                      />
+
+                      <h3>Broccoli & Stilton soup</h3>
+                      <p>9.99$</p>
+                    </div>
+                    <div className="flex justify-between w-full">
+                      <div>
+                        <Button>-</Button>
+                        <span className="mx-4">1</span>
+                        <Button>+</Button>
+                      </div>
+                      <Button>Remove</Button>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu> */}
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+          <main>
+            {children}
+            {categories}
+          </main>
+        </Providers>
       </body>
     </html>
   );
