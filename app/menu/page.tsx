@@ -1,54 +1,24 @@
 "use client";
 
+import MenuSkeleton from "@/components/MenuSkeleton";
 import { Button } from "@/components/ui/button";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarSeparator,
-} from "@/components/ui/sidebar";
-import { useCartContext } from "@/lib/providers";
+import { mealProps, useCartContext } from "@/lib/providers";
 import { cn } from "@/lib/utils";
-import { redirect, usePathname, useRouter } from "next/navigation";
-import { Fragment, use, useEffect, useRef, useState } from "react";
-
-type mealProps = {
-  idMeal: string;
-  strMeal: string;
-  strMealThumb: string;
-};
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 type foodProps = {
   name: string;
   meal: mealProps[];
 };
 
-type CartProps = {
-  quantity: number;
-  meal: mealProps;
-};
-
 function MenuPage() {
-  // const pathname = usePathname();
-  // const router = useRouter();
-
-  // useEffect(() => {
-  //   console.log("MenuPage mounted");
-  //   if (pathname === "/menu") {
-  //     router.push("/menu/side");
-  //   }
-  // }, []);
-
   const { cart, setCart, handleAddQuantity, handleReduceQuantity } =
     useCartContext();
 
   const [data, setData] = useState<foodProps[]>([]);
-  const [addedToCart, setAddedToCart] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState({
     name: "",
     direction: "",
@@ -57,9 +27,14 @@ function MenuPage() {
 
   const activeSectionRef = useRef(activeSection);
 
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push("/menu");
+  }, []);
+
   useEffect(() => {
     activeSectionRef.current = activeSection;
-    // console.log(cart);
   }, [activeSection]);
 
   const menuCategories = [
@@ -77,15 +52,11 @@ function MenuPage() {
   ];
 
   useEffect(() => {
-    console.log("MenuPage updated");
     getData();
   }, []);
 
   useEffect(() => {
-    console.log("MenuPage mounted");
-
     const sections = document.querySelectorAll("section");
-    console.log(sections);
 
     const options = {
       root: null,
@@ -94,31 +65,14 @@ function MenuPage() {
     };
 
     const observer = new IntersectionObserver((entries) => {
-      // console.log(entries);
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          // console.log(entry);
-          console.log(
-            "id",
-            entry.target.id,
-            "placement",
-            entry.target.attributes[1].value
-          );
           const direction1 =
             parseInt(entry.target.attributes[1].value) >=
             activeSectionRef.current.directionValue
               ? "down"
               : "up";
 
-          // console.log(
-          //   "direction1",
-          //   direction1,
-          //   parseInt(entry.target.attributes[1].value) >=
-          //     activeSection.directionValue,
-          //   parseInt(entry.target.attributes[1].value),
-          //   activeSection.directionValue,
-          //   activeSection
-          // );
           setActiveSection((prev) => ({
             name: entry.target.id,
             direction: direction1,
@@ -131,12 +85,6 @@ function MenuPage() {
     sections.forEach((section) => {
       observer.observe(section);
     });
-
-    // setActiveSection({
-    //   name: "seafood",
-    //   direction: "direction",
-    //   directionValue: 1,
-    // });
 
     return () => {
       sections.forEach((section) => {
@@ -183,9 +131,7 @@ function MenuPage() {
     const breakfastData = await breakfast.json();
     const dessertData = await dessert.json();
 
-    // console.log(seafoodData, chikenData);
-
-    setData([
+    const mealData = [
       { name: "starter", meal: starterData.meals },
       { name: "beef", meal: beefData.meals },
       { name: "chicken", meal: chickenData.meals },
@@ -197,15 +143,33 @@ function MenuPage() {
       { name: "vegetarian", meal: vegetarianData.meals },
       { name: "breakfast", meal: breakfastData.meals },
       { name: "dessert", meal: dessertData.meals },
-    ]);
+    ];
+
+    const newMealData = mealData.map((food) => {
+      return {
+        ...food,
+        meal: food.meal.map((meal: mealProps) => {
+          return food.name === "starter" || food.name === "dessert"
+            ? {
+                ...meal,
+                price: parseFloat(`${Math.floor(Math.random() * 5) + 8}.99`),
+              }
+            : {
+                ...meal,
+                price: parseFloat(`${Math.floor(Math.random() * 5) + 18}.99`),
+              };
+        }),
+      };
+    });
+
+    setData(newMealData);
+    setLoading(false);
   }
 
   function handleAddToCart(meal: mealProps) {
-    console.log("Add to cart");
     const cart = localStorage.getItem("cart");
     if (cart) {
       const cartData = JSON.parse(cart);
-      console.log(cartData);
       const newCart = [...cartData, { meal, quantity: 1 }];
       localStorage.setItem("cart", JSON.stringify(newCart));
       setCart(newCart);
@@ -213,122 +177,121 @@ function MenuPage() {
       localStorage.setItem("cart", JSON.stringify([{ meal, quantity: 1 }]));
       setCart([{ meal, quantity: 1 }]);
     }
-
-    // const addedToCart = localStorage.getItem("addedToCart");
-
-    // if (addedToCart) {
-    //   const addedToCartData = JSON.parse(addedToCart);
-    //   const newAddedToCart = [...addedToCartData, meal.idMeal];
-    //   localStorage.setItem("addedToCart", JSON.stringify(newAddedToCart));
-    //   setAddedToCart(newAddedToCart);
-    // } else {
-    //   localStorage.setItem("addedToCart", JSON.stringify([meal.idMeal]));
-    //   setAddedToCart([meal.idMeal]);
-    // }
   }
 
   return (
-    <div className="flex">
-      <SidebarProvider className="flex-[1]">
-        <Sidebar>
-          <SidebarContent>
-            <SidebarGroup>
-              {/* <SidebarGroupLabel>Categories</SidebarGroupLabel> */}
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {menuCategories.map((category) => (
-                    <SidebarMenuItem key={category}>
-                      <SidebarMenuButton size={"lg"} asChild>
-                        <a
-                          href={`${category.toLowerCase()}`}
-                          className={cn(
-                            "relative z-0 before:absolute before:inset-0 before:bg-accent before:-z-10 before:scale-y-0 before:origin-top before:transition-transform",
-                            activeSection.name === category.toLowerCase()
-                              ? activeSection.direction === "down"
-                                ? "before:scale-y-100"
-                                : "before:origin-bottom before:scale-y-100"
-                              : activeSection.direction === "down"
-                              ? "before:origin-bottom"
-                              : "before:scale-y-0"
-                          )}
-                        >
-                          {category}
-                        </a>
-                      </SidebarMenuButton>
-                      <SidebarSeparator />
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-        </Sidebar>
-      </SidebarProvider>
-      <div className="flex-5/6">
-        <div className="container mx-auto">
-          {data.map((food, index) => (
-            <section
-              key={food.name}
-              id={food.name}
-              data-placement={index}
-              className="py-8"
-            >
-              <h1 className="text-3xl uppercase mb-8">{food.name}</h1>
-              <>
-                <ul className="grid grid-cols-5 gap-4">
-                  {food.meal.map((meal) => (
-                    <li key={meal.idMeal}>
-                      <div className="rounded-md overflow-hidden shadow-md">
-                        <img src={meal.strMealThumb} alt={meal.strMeal} />
-                        <div className="flex flex-col items-start bg-accent p-2">
-                          <h2>{meal.strMeal}</h2>
-                          <p>9.99$</p>
-                          {cart.length > 0 &&
-                          cart.find(
-                            (item) =>
-                              item.meal.idMeal === meal.idMeal &&
-                              item.quantity > 0
-                          ) ? (
-                            <div>
-                              <Button
-                                onClick={() =>
-                                  handleReduceQuantity(meal.idMeal)
-                                }
-                              >
-                                -
-                              </Button>
-
-                              {cart.map(
-                                (item) =>
-                                  item.meal.idMeal === meal.idMeal && (
-                                    <span key={meal.idMeal} className="mx-4">
-                                      {item.quantity}
-                                    </span>
-                                  )
-                              )}
-
-                              <Button
-                                onClick={() => handleAddQuantity(meal.idMeal)}
-                              >
-                                +
-                              </Button>
-                            </div>
-                          ) : (
-                            <Button
-                              className="self-end w-2/5"
-                              onClick={() => handleAddToCart(meal)}
-                            >
-                              Add to cart
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            </section>
+    <div className="flex relative container mx-auto py-8">
+      <div className="bg-[#f8fafc] hidden lg:block sticky top-28 w-80 h-full rounded-2xl py-4 px-2 shadow-md">
+        <ul className="text-[2rem] font-heading uppercase text-center">
+          {menuCategories.map((category, index) => (
+            <li key={category}>
+              <Link
+                href={`#${category.toLowerCase()}`}
+                className={cn(
+                  "block p-2 border-b-2 border-[#edf1f6] relative z-0 before:absolute before:inset-0 before:bg-sidebar-accent before:-z-10 before:scale-y-0 before:origin-top before:transition-transform menu-sidebar-btn hover:bg-sidebar-accent",
+                  index === 0 && "border-t-2",
+                  activeSection.name === category.toLowerCase()
+                    ? activeSection.direction === "down"
+                      ? "before:scale-y-100"
+                      : "before:origin-bottom before:scale-y-100"
+                    : activeSection.direction === "down"
+                    ? "before:origin-bottom"
+                    : "before:scale-y-0"
+                )}
+              >
+                {category}
+              </Link>
+            </li>
           ))}
+        </ul>
+      </div>
+      <div className="flex-5/6 px-8">
+        <div className="container mx-auto flex flex-col gap-12">
+          {loading ? (
+            <MenuSkeleton />
+          ) : (
+            data.map((food, index) => {
+              return (
+                <section
+                  key={food.name}
+                  id={food.name}
+                  data-placement={index}
+                  className="scroll-mt-20"
+                >
+                  <h1 className="text-4xl uppercase mb-8 font-heading font-bold">
+                    {food.name}
+                  </h1>
+                  <>
+                    <ul className="grid grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))] gap-4">
+                      {food.meal.map((meal) => {
+                        return (
+                          <li key={meal.idMeal}>
+                            <div className="rounded-md overflow-hidden shadow-md h-full flex flex-col">
+                              <img src={meal.strMealThumb} alt={meal.strMeal} />
+                              <div className="flex flex-col items-start bg-accent p-2 flex-1 justify-between">
+                                <div>
+                                  <h2 className="font-heading font-bold text-[1.25rem]">
+                                    {meal.strMeal}
+                                  </h2>
+                                  <p>{meal.price}$</p>
+                                </div>
+                                {cart.length > 0 &&
+                                cart.find(
+                                  (item) =>
+                                    item.meal.idMeal === meal.idMeal &&
+                                    item.quantity > 0
+                                ) ? (
+                                  <div>
+                                    <Button
+                                      variant={"cta"}
+                                      onClick={() =>
+                                        handleReduceQuantity(meal.idMeal)
+                                      }
+                                    >
+                                      -
+                                    </Button>
+
+                                    {cart.map(
+                                      (item) =>
+                                        item.meal.idMeal === meal.idMeal && (
+                                          <span
+                                            key={meal.idMeal}
+                                            className="mx-4"
+                                          >
+                                            {item.quantity}
+                                          </span>
+                                        )
+                                    )}
+
+                                    <Button
+                                      variant={"cta"}
+                                      onClick={() =>
+                                        handleAddQuantity(meal.idMeal)
+                                      }
+                                    >
+                                      +
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <Button
+                                    variant={"cta"}
+                                    className="self-end w-2/5"
+                                    onClick={() => handleAddToCart(meal)}
+                                  >
+                                    Add to cart
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
+                </section>
+              );
+            })
+          )}
         </div>
       </div>
     </div>

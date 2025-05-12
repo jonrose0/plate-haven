@@ -2,15 +2,11 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 
-type mealProps = {
+export type mealProps = {
   idMeal: string;
   strMeal: string;
   strMealThumb: string;
-};
-
-type foodProps = {
-  name: string;
-  meal: mealProps[];
+  price: number;
 };
 
 type CartProps = {
@@ -62,21 +58,18 @@ function Providers({ children }: { children: React.ReactNode }) {
   function handleReduceQuantity(id: string) {
     const newCart = cart.map((item) => {
       if (item.meal.idMeal === id) {
-        console.log(item.quantity);
         return { ...item, quantity: item.quantity - 1 };
       }
       return item;
     });
 
     const filteredCart = newCart.filter((item) => item.quantity > 0);
-    console.log(newCart, "new cart");
     setCart(filteredCart);
     localStorage.setItem("cart", JSON.stringify(filteredCart));
   }
 
   function handleRemoveItem(id: string) {
     const newCart = cart.filter((item) => item.meal.idMeal !== id);
-    console.log(newCart, "new cart");
     setCart(newCart);
     localStorage.setItem("cart", JSON.stringify(newCart));
   }
